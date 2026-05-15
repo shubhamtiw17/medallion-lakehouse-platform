@@ -1,0 +1,16 @@
+{
+  "timestamp": "2026-05-15T11:53:01.195430",
+  "source": "layers/silver/diabetes",
+  "rows": 4,
+  "columns": [
+    "age_group",
+    "total_patients",
+    "diabetic_count",
+    "avg_glucose",
+    "avg_bmi",
+    "diabetes_rate_pct",
+    "_aggregated_at",
+    "_layer"
+  ],
+  "layer": "gold"
+}

@@ -1,0 +1,17 @@
+{
+  "timestamp": "2026-05-15T11:53:01.226764",
+  "source": "layers/silver/heart_disease",
+  "rows": 8,
+  "columns": [
+    "age_group",
+    "sex",
+    "total_patients",
+    "disease_count",
+    "avg_cholesterol",
+    "avg_max_hr",
+    "disease_rate_pct",
+    "_aggregated_at",
+    "_layer"
+  ],
+  "layer": "gold"
+}

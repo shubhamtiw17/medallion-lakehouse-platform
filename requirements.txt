@@ -1,0 +1,11 @@
+pyspark==3.5.0
+delta-spark==3.0.0
+duckdb==0.10.0
+fastapi==0.110.0
+uvicorn==0.29.0
+streamlit==1.33.0
+great-expectations==0.18.0
+pandas==2.2.0
+plotly==5.20.0
+apache-airflow==2.8.4
+minio==7.2.5

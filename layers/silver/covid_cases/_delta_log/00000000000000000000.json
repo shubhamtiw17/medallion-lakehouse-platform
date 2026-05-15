@@ -1,0 +1,17 @@
+{
+  "timestamp": "2026-05-15T11:51:15.370298",
+  "source": "layers/bronze/covid_cases",
+  "raw_rows": 161568,
+  "clean_rows": 161568,
+  "dropped_rows": 0,
+  "columns": [
+    "Date",
+    "Country",
+    "Confirmed",
+    "Recovered",
+    "Deaths",
+    "_cleaned_at",
+    "_layer"
+  ],
+  "layer": "silver"
+}

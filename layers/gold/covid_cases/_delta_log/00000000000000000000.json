@@ -1,0 +1,16 @@
+{
+  "timestamp": "2026-05-15T11:53:01.161190",
+  "source": "layers/silver/covid_cases",
+  "rows": 198,
+  "columns": [
+    "Country",
+    "total_confirmed",
+    "total_recovered",
+    "total_deaths",
+    "data_points",
+    "death_rate_pct",
+    "_aggregated_at",
+    "_layer"
+  ],
+  "layer": "gold"
+}

@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.env
+data/raw/*.csv
+*.egg-info/
+.spark-warehouse/
+derby.log

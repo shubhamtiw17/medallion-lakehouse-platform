@@ -1,0 +1,21 @@
+{
+  "timestamp": "2026-05-15T11:51:15.402286",
+  "source": "layers/bronze/diabetes",
+  "raw_rows": 768,
+  "clean_rows": 768,
+  "dropped_rows": 0,
+  "columns": [
+    "Pregnancies",
+    "Glucose",
+    "BloodPressure",
+    "SkinThickness",
+    "Insulin",
+    "BMI",
+    "DiabetesPedigreeFunction",
+    "Age",
+    "Outcome",
+    "_cleaned_at",
+    "_layer"
+  ],
+  "layer": "silver"
+}

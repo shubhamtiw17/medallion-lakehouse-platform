@@ -1,0 +1,21 @@
+{
+  "timestamp": "2026-05-15T11:48:45.980566",
+  "source_url": "https://raw.githubusercontent.com/plotly/datasets/master/diabetes.csv",
+  "row_count": 768,
+  "columns": [
+    "Pregnancies",
+    "Glucose",
+    "BloodPressure",
+    "SkinThickness",
+    "Insulin",
+    "BMI",
+    "DiabetesPedigreeFunction",
+    "Age",
+    "Outcome",
+    "_ingested_at",
+    "_source_url",
+    "_dataset_name",
+    "_layer"
+  ],
+  "layer": "bronze"
+}
