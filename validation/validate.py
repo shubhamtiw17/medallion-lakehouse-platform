@@ -14,30 +14,25 @@ def score_dataset(name):
     score  = 100
     issues = []
 
-    # Check 1: null percentage (-20 if > 5%)
     null_pct = df.isnull().sum().sum() / (len(df) * len(df.columns)) * 100
     if null_pct > 5:
         score -= 20
         issues.append(f"High null rate: {null_pct:.1f}%")
 
-    # Check 2: duplicate rows (-15 if > 1%)
     dup_pct = df.duplicated().sum() / len(df) * 100
     if dup_pct > 1:
         score -= 15
         issues.append(f"Duplicates: {dup_pct:.1f}%")
 
-    # Check 3: minimum row count (-30 if < 100)
     if len(df) < 100:
         score -= 30
         issues.append(f"Low row count: {len(df)}")
 
-    # Check 4: metadata columns present (-10 each if missing)
     for col in ["_cleaned_at", "_layer"]:
         if col not in df.columns:
             score -= 10
             issues.append(f"Missing metadata: {col}")
 
-    # Check 5: empty columns (-10 each)
     empty_cols = [c for c in df.columns if df[c].isnull().all()]
     if empty_cols:
         score -= 10 * len(empty_cols)
@@ -74,16 +69,14 @@ if __name__ == "__main__":
             print(f"  Issues: {result['issues'] if result['issues'] else 'None'}")
             print()
         except Exception as e:
-            print(f"ERROR on {name}: {e}\n")
+            print(f"SKIPPED {name}: {e}\n")
 
     if results:
         write_json(results, "metadata", "quality_scores.json")
-
-        # Save local copy
         Path("layers/metadata").mkdir(parents=True, exist_ok=True)
         with open("layers/metadata/quality_scores.json", "w") as f:
             json.dump(results, f, indent=2)
 
         avg = sum(r["score"] for r in results) / len(results)
         print(f"Overall average: {avg:.0f}/100")
-        print("Scores saved to MinIO metadata bucket and layers/metadata/quality_scores.json")
+        print("Scores saved to MinIO metadata bucket")
