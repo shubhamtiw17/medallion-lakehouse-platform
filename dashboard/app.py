@@ -14,7 +14,7 @@ st.caption("Bronze → Silver → Gold · Pandas · DuckDB · Streamlit")
 def query(sql):
     return duckdb.connect().execute(sql).df()
 
-tab1, tab2, tab3 = st.tabs(["COVID-19", "Diabetes", "Heart Disease"])
+tab1, tab2, tab3, tab4 = st.tabs(["COVID-19", "Diabetes", "Heart Disease", "Pipeline Lineage"])
 
 with tab1:
     st.subheader("COVID-19 Global Summary")
@@ -96,3 +96,27 @@ with tab3:
     st.plotly_chart(fig6, use_container_width=True)
 
     st.dataframe(df3, use_container_width=True)
+
+with tab4:
+    st.subheader("Pipeline Run History")
+    runs_file = "layers/metadata/pipeline_runs.jsonl"
+    import json
+    from pathlib import Path
+
+    if Path(runs_file).exists():
+        runs = [json.loads(l) for l in open(runs_file).readlines()]
+        df_runs = pd.DataFrame(runs)
+        
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Total Runs",     len(df_runs))
+        col2.metric("Total Rows Processed", f"{df_runs['output_rows'].sum():,}")
+        col3.metric("Avg Duration",   f"{df_runs['duration_seconds'].mean():.1f}s")
+
+        fig = px.bar(df_runs, x="dataset", y="output_rows",
+                     color="layer", barmode="group",
+                     title="Rows processed per dataset per layer")
+        st.plotly_chart(fig, use_container_width=True)
+
+        st.dataframe(df_runs, use_container_width=True)
+    else:
+        st.info("No pipeline runs logged yet. Run the pipeline first.")

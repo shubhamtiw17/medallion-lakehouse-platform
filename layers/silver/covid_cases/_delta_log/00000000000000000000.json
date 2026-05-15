@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-05-15T11:51:15.370298",
+  "timestamp": "2026-05-15T16:26:46.391053",
   "source": "layers/bronze/covid_cases",
   "raw_rows": 161568,
   "clean_rows": 161568,
-  "dropped_rows": 0,
+  "dropped": 0,
   "columns": [
     "Date",
     "Country",

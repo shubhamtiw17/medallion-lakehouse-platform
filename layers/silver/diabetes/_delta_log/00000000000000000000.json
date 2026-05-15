@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-05-15T11:51:15.402286",
+  "timestamp": "2026-05-15T16:26:46.412585",
   "source": "layers/bronze/diabetes",
   "raw_rows": 768,
   "clean_rows": 768,
-  "dropped_rows": 0,
+  "dropped": 0,
   "columns": [
     "Pregnancies",
     "Glucose",

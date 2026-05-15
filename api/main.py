@@ -1,6 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import duckdb
+import json
+from pathlib import Path
 
 app = FastAPI(
     title="Medallion Lakehouse API",
@@ -69,3 +71,11 @@ def heart_by_age_sex():
         FROM read_parquet('layers/gold/heart_disease/data.parquet')
         ORDER BY age_group, sex
     """)
+
+@app.get("/lineage")
+def get_lineage():
+    runs_file = Path("layers/metadata/pipeline_runs.jsonl")
+    if not runs_file.exists():
+        return []
+    with open(runs_file) as f:
+        return [json.loads(line) for line in f.readlines()]

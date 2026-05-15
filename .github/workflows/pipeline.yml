@@ -1,0 +1,38 @@
+name: Medallion Pipeline CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install pandas duckdb pyarrow fastapi uvicorn streamlit plotly pytest requests
+
+      - name: Run Bronze layer
+        run: python layers/bronze/ingest.py
+
+      - name: Run Silver layer
+        run: python layers/silver/clean.py
+
+      - name: Run Gold layer
+        run: python layers/gold/aggregate.py
+
+      - name: Run validation
+        run: python validation/validate.py
+
+      - name: Run tests
+        run: pytest tests/ -v

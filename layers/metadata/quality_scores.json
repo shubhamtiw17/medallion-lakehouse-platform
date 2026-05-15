@@ -1,0 +1,32 @@
+[
+  {
+    "dataset": "covid_cases",
+    "score": 100,
+    "grade": "A",
+    "row_count": 161568,
+    "null_pct": 0.0,
+    "dup_pct": 0.0,
+    "issues": [],
+    "checked_at": "2026-05-15T16:31:48.182011"
+  },
+  {
+    "dataset": "diabetes",
+    "score": 100,
+    "grade": "A",
+    "row_count": 768,
+    "null_pct": 0.0,
+    "dup_pct": 0.0,
+    "issues": [],
+    "checked_at": "2026-05-15T16:31:48.196599"
+  },
+  {
+    "dataset": "heart_disease",
+    "score": 100,
+    "grade": "A",
+    "row_count": 303,
+    "null_pct": 0.0,
+    "dup_pct": 0.0,
+    "issues": [],
+    "checked_at": "2026-05-15T16:31:48.211691"
+  }
+]

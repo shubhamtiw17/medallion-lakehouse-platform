@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-05-15T11:48:46.989124",
+  "timestamp": "2026-05-15T16:25:34.434695",
   "source_url": "https://archive.ics.uci.edu/ml/machine-learning-databases/heart-disease/processed.cleveland.data",
   "row_count": 303,
   "columns": [
@@ -20,7 +20,8 @@
     "_ingested_at",
     "_source_url",
     "_dataset_name",
-    "_layer"
+    "_layer",
+    "_run_version"
   ],
   "layer": "bronze"
 }

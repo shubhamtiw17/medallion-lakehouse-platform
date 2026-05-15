@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-05-15T11:51:15.423111",
+  "timestamp": "2026-05-15T16:26:46.431994",
   "source": "layers/bronze/heart_disease",
   "raw_rows": 303,
   "clean_rows": 303,
-  "dropped_rows": 0,
+  "dropped": 0,
   "columns": [
     "age",
     "sex",

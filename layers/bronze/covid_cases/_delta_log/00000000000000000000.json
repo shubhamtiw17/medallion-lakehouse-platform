@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-05-15T11:48:45.896850",
+  "timestamp": "2026-05-15T16:25:33.211388",
   "source_url": "https://raw.githubusercontent.com/datasets/covid-19/main/data/countries-aggregated.csv",
   "row_count": 161568,
   "columns": [
@@ -11,7 +11,8 @@
     "_ingested_at",
     "_source_url",
     "_dataset_name",
-    "_layer"
+    "_layer",
+    "_run_version"
   ],
   "layer": "bronze"
 }
