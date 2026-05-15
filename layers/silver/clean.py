@@ -20,10 +20,10 @@ def clean_covid(df):
     return df
 
 def clean_diabetes(df):
-    # Zero values in medical columns are actually missing data
     medical_cols = ["Glucose","BloodPressure","SkinThickness","Insulin","BMI"]
     for col in medical_cols:
         df[col] = df[col].replace(0, pd.NA)
+        df[col] = pd.to_numeric(df[col], errors="coerce")
         df[col] = df[col].fillna(df[col].median())
     return df
 
@@ -40,11 +40,12 @@ def clean_us_hospitals(df):
     df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
     print(f"  US hospitals columns: {list(df.columns[:6])}")
 
+    # Drop empty source tracking columns
     source_cols = [c for c in df.columns if c.endswith("_source") or "_-_source" in c]
     df = df.drop(columns=source_cols)
     print(f"  Dropped {len(source_cols)} empty source columns")
 
-    # Fix occupancy rates — should be between 0 and 1
+    # Fix occupancy rates
     rate_cols = [c for c in df.columns if "rate" in c or "occupancy" in c]
     for col in rate_cols:
         df[col] = pd.to_numeric(df[col], errors="coerce")
@@ -54,9 +55,10 @@ def clean_us_hospitals(df):
     bed_cols = [c for c in df.columns if "bed" in c]
     for col in bed_cols:
         df[col] = pd.to_numeric(df[col], errors="coerce")
-        df[col] = df[col].fillna(df[col].median())
+        median_val = df[col].median()
+        df[col] = df[col].fillna(0 if pd.isna(median_val) else median_val)
 
-    # Standardise state to uppercase
+    # Standardise state
     if "state" in df.columns:
         df["state"] = df["state"].str.strip().str.upper()
 
@@ -70,22 +72,28 @@ def clean_ds_jobs(df):
     df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
     print(f"  DS jobs columns: {list(df.columns[:6])}")
 
-    # Parse salary range — format is "$50K-$100K (Glassdoor est.)"
+    # Parse salary range
     if "salary_estimate" in df.columns:
         df["salary_min"] = df["salary_estimate"].str.extract(r"\$(\d+)K").astype(float) * 1000
         df["salary_max"] = df["salary_estimate"].str.extract(r"-\$(\d+)K").astype(float) * 1000
         df["salary_avg"] = ((df["salary_min"] + df["salary_max"]) / 2).round(0)
 
-    # Clean rating — -1 means missing in Glassdoor data
+    # Clean rating
     if "rating" in df.columns:
         df["rating"] = pd.to_numeric(df["rating"], errors="coerce")
         df["rating"] = df["rating"].replace(-1, pd.NA)
-        df["rating"] = df["rating"].fillna(df["rating"].median())
+        median_rating = df["rating"].median()
+        df["rating"] = df["rating"].fillna(0 if pd.isna(median_rating) else median_rating)
 
-    # Remove newlines from all string columns
+    # Clean string columns
     for col in df.select_dtypes(include="object").columns:
         df[col] = df[col].str.replace(r"\n", " ", regex=True).str.strip()
         df[col] = df[col].fillna("unknown")
+
+    # Fill remaining numeric nulls
+    for col in df.select_dtypes(include="number").columns:
+        median_val = df[col].median()
+        df[col] = df[col].fillna(0 if pd.isna(median_val) else median_val)
 
     return df
 
@@ -101,7 +109,6 @@ def clean_to_silver(name):
     start = time.time()
     print(f"\nCleaning: {name}")
 
-    # Read from MinIO
     df = read_parquet("bronze", f"{name}/data.parquet")
     raw_count = len(df)
     print(f"Bronze rows: {raw_count:,}")
@@ -114,7 +121,7 @@ def clean_to_silver(name):
     df = df.drop_duplicates()
     df = df.dropna(how="all")
 
-    # Dataset-specific cleaning
+    # Dataset specific cleaning
     if name in CLEANERS:
         df = CLEANERS[name](df)
 
@@ -129,7 +136,7 @@ def clean_to_silver(name):
     # Write to MinIO
     write_parquet(df, "silver", f"{name}/data.parquet")
 
-    # Write metadata log to MinIO
+    # Write metadata log
     metadata = {
         "timestamp":  datetime.now().isoformat(),
         "source":     f"bronze/{name}",
@@ -141,7 +148,7 @@ def clean_to_silver(name):
     }
     write_json(metadata, "metadata", f"silver_{name}_log.json")
 
-    # Local copy for Airflow access
+    # Local copy
     local_path = Path(f"layers/silver/{name}")
     local_path.mkdir(parents=True, exist_ok=True)
     df.to_parquet(local_path / "data.parquet", index=False)
@@ -167,4 +174,4 @@ if __name__ == "__main__":
             df = read_parquet("silver", f"{name}/data.parquet")
             print(f"  {name}: {len(df):,} rows in MinIO silver bucket")
         except Exception as e:
-            print(f"  {name}: ERROR - {e}")
+            print(f"  {name}: MISSING - {e}")

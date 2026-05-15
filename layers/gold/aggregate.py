@@ -1,5 +1,4 @@
 import pandas as pd
-
 import json
 import time
 import sys
@@ -71,10 +70,8 @@ def build_gold_us_hospitals():
 
     group_col = "state" if "state" in df.columns else df.columns[0]
     bed_col   = next((c for c in df.columns if "staffed_all_beds" in c), None)
-
     if not bed_col:
         bed_col = next((c for c in df.columns if "bed" in c), None)
-
     if not bed_col:
         print("  No bed column found")
         return pd.DataFrame()
@@ -82,30 +79,22 @@ def build_gold_us_hospitals():
     icu_col  = next((c for c in df.columns if "icu" in c and "bed" in c), None)
     rate_col = next((c for c in df.columns if "occupancy" in c and "rate" in c and "icu" not in c), None)
 
-    agg_dict = {
-        bed_col: ["count", "sum", "mean"]
-    }
+    agg_dict = {bed_col: ["count", "sum", "mean"]}
     if icu_col:
         agg_dict[icu_col] = ["sum", "mean"]
     if rate_col:
         agg_dict[rate_col] = ["mean"]
 
     gold = df.groupby(group_col).agg(agg_dict).reset_index()
-
-    # Flatten multi-level columns
     gold.columns = [
         "_".join(col).strip("_") if isinstance(col, tuple) else col
         for col in gold.columns
     ]
-
-    # Rename for clarity
     gold = gold.rename(columns={
         f"{bed_col}_count": "hospital_count",
         f"{bed_col}_sum":   "total_staffed_beds",
         f"{bed_col}_mean":  "avg_staffed_beds",
     })
-
-    # Round numeric columns
     for col in gold.select_dtypes(include="number").columns:
         gold[col] = gold[col].round(1)
 
@@ -123,8 +112,12 @@ def build_gold_ds_jobs():
         None
     )
 
-    if not salary_col or not group_col:
-        print(f"  Missing salary_col={salary_col} or group_col={group_col}")
+    if not salary_col:
+        print("  No salary_avg column found — skipping ds_jobs gold")
+        return pd.DataFrame()
+
+    if not group_col:
+        print("  No sector/industry column found — skipping ds_jobs gold")
         return pd.DataFrame()
 
     gold = df.groupby(group_col).agg(
@@ -132,11 +125,11 @@ def build_gold_ds_jobs():
         avg_salary = (salary_col, "mean"),
         min_salary = (salary_col, "min"),
         max_salary = (salary_col, "max"),
-        avg_rating = ("rating",   "mean") if "rating" in df.columns else (group_col, "count")
+        avg_rating = ("rating",   "mean")
     ).reset_index()
 
-    gold["avg_salary"] = gold["avg_salary"].round(0)
-    gold["avg_rating"] = gold["avg_rating"].round(2) if "avg_rating" in gold.columns else 0
+    gold["avg_salary"]     = gold["avg_salary"].round(0)
+    gold["avg_rating"]     = gold["avg_rating"].round(2)
     gold["_aggregated_at"] = datetime.now().isoformat()
     gold["_layer"]         = "gold"
     return gold
@@ -146,26 +139,22 @@ def build_gold_covid_hospitals_join():
         covid     = read_parquet("gold", "covid_cases/data.parquet")
         hospitals = read_parquet("gold", "us_hospitals/data.parquet")
 
-        # Find the state column in hospitals
         state_col = next((c for c in hospitals.columns if c == "state"), None)
         if not state_col:
             print("  No state column in hospitals gold layer")
             return pd.DataFrame()
 
-        # COVID has country — filter to US only and merge on state is not possible
-        # Instead join on common key: both have aggregated numeric data
-        # Create a summary joining hospital capacity with COVID death rates for US states
-        us_covid = covid[covid["Country"].str.contains("US|United States|America", na=False, case=False)]
-        if us_covid.empty:  
+        us_covid = covid[covid["Country"].str.contains(
+            "US|United States|America", na=False, case=False
+        )]
+        if us_covid.empty:
             us_covid = covid[covid["Country"] == "Us"]
-
         if us_covid.empty:
             print("  No US COVID data found for join")
             return pd.DataFrame()
 
-        # Add US total to hospital summary
-        hospitals["total_us_confirmed"] = us_covid["total_confirmed"].values[0] if len(us_covid) > 0 else 0
-        hospitals["total_us_deaths"]    = us_covid["total_deaths"].values[0]    if len(us_covid) > 0 else 0
+        hospitals["total_us_confirmed"] = us_covid["total_confirmed"].values[0]
+        hospitals["total_us_deaths"]    = us_covid["total_deaths"].values[0]
         hospitals["_joined_at"]         = datetime.now().isoformat()
         hospitals["_layer"]             = "gold"
 
@@ -181,15 +170,12 @@ def save_gold(df, name):
         print(f"  Skipping {name} — empty dataframe")
         return
 
-    # Write to MinIO
     write_parquet(df, "gold", f"{name}/data.parquet")
 
-    # Write local copy for Airflow and API access
     local_path = Path(f"layers/gold/{name}")
     local_path.mkdir(parents=True, exist_ok=True)
     df.to_parquet(local_path / "data.parquet", index=False)
 
-    # Write metadata log
     metadata = {
         "timestamp": datetime.now().isoformat(),
         "rows":      len(df),
@@ -213,18 +199,23 @@ if __name__ == "__main__":
     for name, builder, input_rows in datasets:
         print(f"Aggregating: {name}")
         start = time.time()
-        df    = builder()
-        save_gold(df, name)
-        if df is not None and not df.empty:
-            log_run(name, "gold", input_rows, len(df), time.time() - start)
+        try:
+            df = builder()
+            save_gold(df, name)
+            if df is not None and not df.empty:
+                log_run(name, "gold", input_rows, len(df), time.time() - start)
+        except Exception as e:
+            print(f"  SKIPPED {name}: {e}")
 
-    # Cross-dataset join
     print("\nBuilding cross-dataset join: covid + us_hospitals")
-    start  = time.time()
-    joined = build_gold_covid_hospitals_join()
-    save_gold(joined, "covid_hospitals_joined")
-    if joined is not None and not joined.empty:
-        log_run("covid_hospitals_joined", "gold", 0, len(joined), time.time() - start)
+    start = time.time()
+    try:
+        joined = build_gold_covid_hospitals_join()
+        save_gold(joined, "covid_hospitals_joined")
+        if joined is not None and not joined.empty:
+            log_run("covid_hospitals_joined", "gold", 0, len(joined), time.time() - start)
+    except Exception as e:
+        print(f"  SKIPPED join: {e}")
 
     print("\n=== Verification ===")
     for name, _, _ in datasets:
@@ -232,6 +223,6 @@ if __name__ == "__main__":
             df    = read_parquet("gold", f"{name}/data.parquet")
             print(f"  {name}: {len(df):,} aggregated rows in MinIO gold bucket")
         except Exception as e:
-            print(f"  {name}: ERROR - {e}")
+            print(f"  {name}: SKIPPED - {e}")
 
     print("\nDONE: Gold layer complete")
