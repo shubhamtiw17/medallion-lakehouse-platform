@@ -1,44 +1,43 @@
 import pandas as pd
-import duckdb
 import json
 import sys
 from datetime import datetime
 from pathlib import Path
 
 sys.path.append(".")
-from layers.metadata.logger import log_run
+from layers.storage import read_parquet, write_json
 
-DATASETS = ["covid_cases", "diabetes", "heart_disease"]
+DATASETS = ["covid_cases", "diabetes", "heart_disease", "us_hospitals", "ds_jobs"]
 
 def score_dataset(name):
-    df     = pd.read_parquet(f"layers/silver/{name}/data.parquet")
+    df     = read_parquet("silver", f"{name}/data.parquet")
     score  = 100
     issues = []
 
-    # Check 1: null percentage
+    # Check 1: null percentage (-20 if > 5%)
     null_pct = df.isnull().sum().sum() / (len(df) * len(df.columns)) * 100
     if null_pct > 5:
         score -= 20
         issues.append(f"High null rate: {null_pct:.1f}%")
 
-    # Check 2: duplicate rows
+    # Check 2: duplicate rows (-15 if > 1%)
     dup_pct = df.duplicated().sum() / len(df) * 100
     if dup_pct > 1:
         score -= 15
         issues.append(f"Duplicates: {dup_pct:.1f}%")
 
-    # Check 3: row count
+    # Check 3: minimum row count (-30 if < 100)
     if len(df) < 100:
         score -= 30
         issues.append(f"Low row count: {len(df)}")
 
-    # Check 4: metadata columns
+    # Check 4: metadata columns present (-10 each if missing)
     for col in ["_cleaned_at", "_layer"]:
         if col not in df.columns:
             score -= 10
             issues.append(f"Missing metadata: {col}")
 
-    # Check 5: empty columns
+    # Check 5: empty columns (-10 each)
     empty_cols = [c for c in df.columns if df[c].isnull().all()]
     if empty_cols:
         score -= 10 * len(empty_cols)
@@ -51,6 +50,7 @@ def score_dataset(name):
         "score":      score,
         "grade":      "A" if score >= 90 else "B" if score >= 75 else "C" if score >= 60 else "F",
         "row_count":  len(df),
+        "col_count":  len(df.columns),
         "null_pct":   round(null_pct, 2),
         "dup_pct":    round(dup_pct, 2),
         "issues":     issues,
@@ -62,21 +62,28 @@ if __name__ == "__main__":
     results = []
 
     for name in DATASETS:
-        result = score_dataset(name)
-        results.append(result)
-        print(f"{name}")
-        print(f"  Score:  {result['score']}/100  (Grade: {result['grade']})")
-        print(f"  Rows:   {result['row_count']:,}")
-        print(f"  Nulls:  {result['null_pct']}%")
-        print(f"  Dupes:  {result['dup_pct']}%")
-        print(f"  Issues: {result['issues'] if result['issues'] else 'None'}")
-        print()
+        try:
+            result = score_dataset(name)
+            results.append(result)
+            print(f"{name}")
+            print(f"  Score:  {result['score']}/100  (Grade: {result['grade']})")
+            print(f"  Rows:   {result['row_count']:,}")
+            print(f"  Cols:   {result['col_count']}")
+            print(f"  Nulls:  {result['null_pct']}%")
+            print(f"  Dupes:  {result['dup_pct']}%")
+            print(f"  Issues: {result['issues'] if result['issues'] else 'None'}")
+            print()
+        except Exception as e:
+            print(f"ERROR on {name}: {e}\n")
 
-    # Save scores
-    Path("layers/metadata").mkdir(parents=True, exist_ok=True)
-    with open("layers/metadata/quality_scores.json", "w") as f:
-        json.dump(results, f, indent=2)
+    if results:
+        write_json(results, "metadata", "quality_scores.json")
 
-    avg = sum(r["score"] for r in results) / len(results)
-    print(f"Overall average: {avg:.0f}/100")
-    print("Scores saved to layers/metadata/quality_scores.json")
+        # Save local copy
+        Path("layers/metadata").mkdir(parents=True, exist_ok=True)
+        with open("layers/metadata/quality_scores.json", "w") as f:
+            json.dump(results, f, indent=2)
+
+        avg = sum(r["score"] for r in results) / len(results)
+        print(f"Overall average: {avg:.0f}/100")
+        print("Scores saved to MinIO metadata bucket and layers/metadata/quality_scores.json")

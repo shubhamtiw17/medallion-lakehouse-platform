@@ -1,47 +1,24 @@
-version: '3.8'
-
-services:
-  minio:
-    image: minio/minio
-    container_name: lakehouse_minio
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    environment:
-      MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: password123
-    command: server /data --console-address ":9001"
-    volumes:
-      - minio_data:/data
-
-  postgres:
-    image: postgres:15
-    container_name: lakehouse_postgres
-    environment:
-      POSTGRES_USER: airflow
-      POSTGRES_PASSWORD: airflow
-      POSTGRES_DB: airflow
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-  airflow:
+airflow:
     image: apache/airflow:2.8.0
     container_name: lakehouse_airflow
+    env_file:
+      - .env
     depends_on:
       - postgres
+      - minio
     environment:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
       _AIRFLOW_DB_MIGRATE: 'true'
       _AIRFLOW_WWW_USER_CREATE: 'true'
       _AIRFLOW_WWW_USER_USERNAME: admin
       _AIRFLOW_WWW_USER_PASSWORD: admin
+      PYTHONPATH: /opt/airflow
     volumes:
       - ./dags:/opt/airflow/dags
+      - ./layers:/opt/airflow/layers
+      - ./validation:/opt/airflow/validation
     ports:
       - "8080:8080"
     command: standalone
-
-volumes:
-  minio_data:
-  postgres_data:

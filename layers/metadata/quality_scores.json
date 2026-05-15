@@ -4,29 +4,54 @@
     "score": 100,
     "grade": "A",
     "row_count": 161568,
+    "col_count": 7,
     "null_pct": 0.0,
     "dup_pct": 0.0,
     "issues": [],
-    "checked_at": "2026-05-15T16:31:48.182011"
+    "checked_at": "2026-05-15T16:11:20.773057"
   },
   {
     "dataset": "diabetes",
     "score": 100,
     "grade": "A",
     "row_count": 768,
+    "col_count": 11,
     "null_pct": 0.0,
     "dup_pct": 0.0,
     "issues": [],
-    "checked_at": "2026-05-15T16:31:48.196599"
+    "checked_at": "2026-05-15T16:11:20.791468"
   },
   {
     "dataset": "heart_disease",
     "score": 100,
     "grade": "A",
     "row_count": 303,
+    "col_count": 16,
     "null_pct": 0.0,
     "dup_pct": 0.0,
     "issues": [],
-    "checked_at": "2026-05-15T16:31:48.211691"
+    "checked_at": "2026-05-15T16:11:20.808427"
+  },
+  {
+    "dataset": "us_hospitals",
+    "score": 100,
+    "grade": "A",
+    "row_count": 7154,
+    "col_count": 21,
+    "null_pct": 2.07,
+    "dup_pct": 0.0,
+    "issues": [],
+    "checked_at": "2026-05-15T16:11:20.855870"
+  },
+  {
+    "dataset": "ds_jobs",
+    "score": 100,
+    "grade": "A",
+    "row_count": 672,
+    "col_count": 20,
+    "null_pct": 0.0,
+    "dup_pct": 0.0,
+    "issues": [],
+    "checked_at": "2026-05-15T16:11:20.897415"
   }
 ]
