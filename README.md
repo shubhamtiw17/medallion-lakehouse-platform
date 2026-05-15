@@ -4,6 +4,8 @@ A healthcare analytics platform built on **Bronze → Silver → Gold** medallio
 
 ![Dashboard](screenshots/Dashboard-1.png)
 
+> This is a personal portfolio project and is not open for external contributions.
+
 ## Architecture
 Raw Online Data (COVID-19, Diabetes, Heart Disease)
 ↓
@@ -69,6 +71,7 @@ python -m streamlit run dashboard/app.py
 
 ## Project Structure
 
+```
 medallion-lakehouse-platform/
 ├── layers/
 │   ├── bronze/          # Raw ingestion scripts
@@ -79,6 +82,7 @@ medallion-lakehouse-platform/
 ├── dags/                # Airflow DAG
 ├── validation/          # Data quality checks
 └── docker-compose.yml   # Local infrastructure
+```
 
 ## What I Built
 
@@ -90,6 +94,3 @@ medallion-lakehouse-platform/
 - Interactive multi-tab analytics dashboard
 - Airflow DAG for pipeline orchestration
 - Docker Compose for full local deployment
-
-> Note: Pipeline uses Pandas locally for Windows compatibility.
-> Production design uses PySpark + Delta Lake on Linux/cloud.
