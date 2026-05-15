@@ -4,7 +4,7 @@ A production-ready healthcare analytics platform built on **Bronze â†’ Silver â†
 
 > This is a personal portfolio project and is not open for external contributions.
 
-![Pipeline](screenshots/dashboard.png)
+![Pipeline](screenshots/Dashboard-1.png)
 
 ---
 
@@ -76,7 +76,7 @@ Live Public URLs (5 healthcare datasets)
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/YOUR_USERNAME/medallion-lakehouse-platform
+git clone https://github.com/shubhamtiw17/medallion-lakehouse-platform
 cd medallion-lakehouse-platform
 
 # 2. Create environment file
